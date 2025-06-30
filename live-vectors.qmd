@@ -1,0 +1,56 @@
+---
+title: "Live coding exercise - Vectors"
+format:
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+execute:
+  echo: true
+  warning: false
+---
+
+```{r}
+
+```
+
+# Part 1: (Atomic) Vectors
+
+Atomic vectors, of which there are six types: logical, integer, double, character, complex, and raw.
+
+Integer and double vectors are collectively known as numeric vectors.
+
+-   lgl: logical
+-   int: integer
+-   dbl: double
+-   chr: character
+
+```{r}
+
+
+
+```
+
+## Types of atomic vectors
+
+```{r}
+
+
+```
+
+## Explicit vector coercion & augmented vectors
+
+Vectors can also contain arbitrary additional metadata in the form of attributes. These attributes are used to create augmented vectors which build on additional behaviour. For example, factors are built on top of integer vectors.
+
+```{r}
+
+
+```
+
+### Working with dates
+
+```{r}
+
+
+```

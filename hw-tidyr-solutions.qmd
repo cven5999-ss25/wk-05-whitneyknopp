@@ -1,0 +1,199 @@
+---
+title: "Homework Exercise - Data tidying"
+format:
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+execute:
+  echo: true
+  warning: false
+---
+
+# Task 0: Load Packages
+
+1.  What's the `tidyverse` Package? Describe in maximum two sentences below.
+
+2.  What's the [`here` Package](https://here.r-lib.org/articles/here.html)? Why is useful when working with quarto or R Markdown files?
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+# Task 1: Import data
+
+**Write the code yourself**
+
+1.  Use the `read_csv()` (**Note**: Watch out for the `_` don't use the `.` as in `read.csv()`) function to import the 'msw-generation-and-composition-by-income.csv' data from the "data" directory and assign it to an object with the name `waste_data`. **Tipp:** Combine the `read_csv()` with the `here()` function as we have done in the live coding exercise of week 3.
+
+```{r}
+
+waste_data <- read_csv(here("data/msw-generation-and-composition-by-income.csv"))
+
+```
+
+# Task 2: Vector coersion
+
+**Write the code yourself**
+
+1.  Starting with the `waste_data` object, use the pipe operator and the `mutate()` function to convert the `income_cat` variable from a variable of type character to a variable of type factor. Define the factor levels yourself and store them in a separate object with the name `levels_income_cat`\`.
+
+**Tipp:** First create a frequency table for the income categories using the following code to identify the correct spelling of the categories in the variable `income_cat`.
+
+```         
+waste_data |> 
+  count(income_cat)
+```
+
+2.  Assign the created dataframe to an object with the name `waste_data_fct`.
+
+3.  Render and fix any errors
+
+```{r}
+
+waste_data |> 
+  count(income_cat)
+
+levels_income_cat <- c("high income", 
+                       "upper-middle income",
+                       "lower-middle income",
+                       "low income")
+
+waste_data_fct <- waste_data |> 
+  mutate(income_cat = factor(income_cat, levels = levels_income_cat))
+
+```
+
+# Task 3: From wide to long
+
+**Write the code yourself**
+
+1.  Starting with the `waste_data_fct` object, use the `pivot_longer()` function to convert the dataframe from a wide to a long format. Apply the following:
+
+-   bring all columns from `food_organic_waste` to `yard_garden_green_waste` into a long format
+-   send the variable names to a column named "waste_category"
+-   send the values of the variables to a column named "percent"
+
+2.  Remove all `NA`s from the `percent` variable
+
+3.  Assign the created dataframe to an object with the name `waste_data_long`
+
+4.  Render and fix any errors
+
+```{r}
+
+waste_data_long <- waste_data_fct |> 
+  pivot_longer(cols = food_organic_waste:yard_garden_green_waste,
+               names_to = "waste_category",
+               values_to = "percent") |> 
+  drop_na(percent)
+```
+
+# Task 4: Summarise data
+
+As in the exercises for week 4, I have stored the data that I would have expected at this point and import it here.
+
+```{r}
+
+waste_data_long <- read_rds(here("data/msw-generation-and-composition-by-income-long.rds"))
+
+```
+
+**Write the code yourself**
+
+1.  Starting with `waste_data_long`, group the data by`income_cat` and `waste_category`, then create a summary table containing the mean of percentages (call this mean_percent) for each group.
+
+2.  Assign the created dataframe to an object with the name `waste_data_long_mean`.
+
+```{r}
+
+waste_data_long_mean <- waste_data_long |> 
+  group_by(income_cat, waste_category) |> 
+  summarise(mean_percent = mean(percent)) 
+
+```
+
+**Fill in the blanks**
+
+1.  Starting with the `waste_data_long_mean` object, execute the code and observe the output in the Console. Would you publish this table in this format in a report?
+
+2.  Starting with the `waste_data_long_mean` object, use the pipe operator to add another line of code which uses the `pivot_wider()` function to bring the data from a long format into a wide format using names for variables from `waste_category` and corresponding values from `mean_percent`
+
+3.  Execute the code and observe the output in the Console. Would you publish this table in a report in this format?
+
+4.  Render and fix any errors
+
+```{r}
+#| eval: true
+
+waste_data_long_mean
+
+waste_data_long_mean |> 
+  pivot_wider(names_from = waste_category,
+              values_from = mean_percent) 
+
+
+```
+
+# Task 5: Data visualisation
+
+As in the exercises for week 4, I have stored the data that I would have expected at this point and import it here.
+
+```{r}
+
+waste_data_long_mean <- read_rds(here("data/msw-generation-and-composition-by-income-long-mean.rds"))
+
+```
+
+1.  Render and fix any errors
+
+2.  Reproduce the plot that you see as an image below when you render the report and view the output in your Viewer tab in the bottom right window.
+
+**Hint:** To get those bars displayed next to each other, use the `geom_col()` function and apply the `position = position_dodge()` argument and value. The colors don't have to be exactly the same colours, just not the default color scale. As you know, I like my theming minimal.
+
+**Note:** The size of the plot will be different. That is alright and does not need to match.
+
+```{r}
+
+ggplot(data = waste_data_long_mean, 
+       mapping = aes(x = mean_percent, 
+                     y = waste_category, 
+                     fill = income_cat)) + 
+  geom_col(position = position_dodge()) + 
+  labs(title = "Waste Composition", 
+       subtitle = "Mean percentages of nine waste categories displayed by income categories",
+       x = "mean (percent)", 
+       y = "waste category", 
+       fill = "Income category", 
+       caption = "Data from: https://datacatalog.worldbank.org/search/dataset/0039597") + 
+  scale_x_continuous(breaks = seq(0, 50, 5)) + 
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_minimal() + 
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major.y = element_blank())
+  
+```
+
+![](figs/fig-01-mean-waste-composition-by-income.png)
+
+# Task 6: Complete assignment
+
+## Stage, Commit & Push to GitHub
+
+1.  Open the Git pane in RStudio. It's in the top right corner in a separate tab.
+2.  **Stage** your changes by checking appropriate box next to all files (if you select one file with your mouse, you can then highlight them all with Ctrl + A on your keyboard and check all boxes)
+3.  Write a meaningful commit message (e.g. "Completed homework assignment 1b) in the **Commit message** box
+4.  Click **Commit**. Note that every commit needs to have a commit message associated with it.
+5.  Go to your course-material GitHub repo and refresh the page. You should see your commit message next to the updated files.
+
+## Open an issue on GitHub
+
+Once you have ensured that the Quarto document renders without errors and you have pushed all your changes to GitHub, it is to complete the assignment by opening an issue on your course-material GitHub repo.
+
+1.  Navigate to your course-material GitHub repo.
+2.  Click on **Issues**, and then **New issue** button.
+3.  Write a meaningful title in the **Title** field
+4.  Tag the course instructor with using the `@` sign in combination with `larnsce` as the username
+5.  Add any questions or comments

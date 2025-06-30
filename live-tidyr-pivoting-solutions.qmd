@@ -1,0 +1,131 @@
+---
+title: "Live coding exercise - Pivoting"
+format:
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+execute:
+  echo: true
+  warning: false
+bibliography: references.bib
+---
+
+```{r}
+library(tidyverse)
+library(gapminder)
+```
+
+# tidyr: pivoting
+
+## Example: Waste characterisation data
+
+The data for this exercise was generated as part of a course taught at ETH Zurich, Switzerland [@benaleya2022].
+
+The dataset contains the results of a waste characterisation study of public bins in Zurich, Switzerland. Waste was separated and weighed in kg for the following categories:
+
+-   paper
+-   PET
+-   metals
+-   glass
+-   others
+
+Additional metadata on location and type of bin is available.
+
+```{r}
+
+waste_data <- read_delim(here::here("wk-05/data/rbtl_fs22_waste_composition_bellevue.csv"), delim = ";")
+
+```
+
+```{r}
+
+waste_data_long <- waste_data |> 
+  select(number, starts_with("weight")) |> 
+  rename_with(~str_remove(.x, "weight_")) |> 
+  select(-total) |> 
+  pivot_longer(cols = !number,
+              names_to = "waste_category",
+              values_to = "weight")
+
+```
+
+## Example: Gapminder
+
+The following exercise is taken from @zimmerman2019.
+
+```{r}
+
+gapminder_wide <- read_csv("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/main/episodes/data/gapminder_wide.csv")
+
+```
+
+```{r}
+
+gapminder
+
+gapminder_wide 
+
+glimpse(gapminder_wide)
+
+```
+
+### From wide to long
+
+```{r}
+
+gapminder_wide |> 
+  pivot_longer(cols = gdpPercap_1952:pop_2007,
+               names_to = "obstype_year",
+               values_to = "obs_value") 
+
+# QUESTION: can we calculate the mean gdp per capita  per country and year?
+
+# Now obstype_year actually contains 2 pieces of information, the observation 
+# type (pop, lifeExp, or gdpPercap) and the year. We can use the separate() 
+# function to split the character strings into multiple variables
+
+gapminder_long <- gapminder_wide |> 
+  pivot_longer(cols = gdpPercap_1952:pop_2007,
+               names_to = "obstype_year",
+               values_to = "obs_value") |> 
+  separate(col = obstype_year, into = c("obs_type", "year"), sep = "_") 
+
+```
+
+**Your turn**
+
+1.  Using `gapminder_long`, calculate the mean life expectancy, population, and gdpPercap for each continent. **Hint:** use the `group_by()` and `summarize()` functions we learned in the `dplyr` lesson.
+2.  Assign the created dataframe to an object with the name `gapminder_long_summary`
+
+```{r}
+
+gapminder_long_summary <- gapminder_long |> 
+  group_by(continent, obs_type) |> 
+  summarise(means = mean(obs_value)) 
+
+# Want a readable table? Back to wide
+
+gapminder_long_summary |> 
+  pivot_wider(names_from = obs_type,
+              values_from = means) |> 
+  knitr::kable(digits = 1)
+
+# Render
+
+```
+
+### From long to intermediate format
+
+```{r}
+
+gapminder_normal <- gapminder_long |> 
+  pivot_wider(names_from = obs_type,
+              values_from = obs_value) |> 
+  select(country, continent, year, lifeExp, pop, gdpPercap) |> 
+  arrange(country, year)
+
+```
+
+# References

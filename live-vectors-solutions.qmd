@@ -1,0 +1,115 @@
+---
+title: "Live coding exercise - Vectors"
+format:
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+execute:
+  echo: true
+  warning: false
+---
+
+```{r}
+library(tidyverse)
+library(gapminder)
+library(lubridate)
+
+```
+
+# Part 1: (Atomic) Vectors
+
+Atomic vectors, of which there are six types: logical, integer, double, character, complex, and raw.
+
+Integer and double vectors are collectively known as numeric vectors.
+
+-   lgl: logical
+-   int: integer
+-   dbl: double
+-   chr: character
+
+```{r}
+
+glimpse(gapminder)
+
+```
+
+## Types of atomic vectors
+
+```{r}
+
+vector_lgl <- c(TRUE, TRUE, FALSE)
+typeof(vector_lgl)
+
+vector_int <- c(1L, 3L, 6L)
+typeof(vector_int)
+
+vector_dbl <- c(192, 118.5, 162.5)
+typeof(vector_dbl)
+
+vector_chr <- c("large", "small", "medium")
+typeof(vector_chr)
+
+```
+
+## Explicit vector coercion & augmented vectors
+
+Vectors can also contain arbitrary additional metadata in the form of attributes. These attributes are used to create augmented vectors which build on additional behaviour. For example, factors are built on top of integer vectors.
+
+```{r}
+
+vector_num <- as.numeric(vector_lgl)
+typeof(vector_num) 
+
+vector_fct <- factor(vector_chr, levels = c("small", "medium", "large"))
+
+typeof(vector_fct)
+attributes(vector_fct)
+as.integer(vector_fct)
+
+tib_data <- tibble(
+  vector_lgl = vector_lgl,
+  vector_int = vector_int,
+  vector_dbl = vector_dbl,
+  vector_chr = vector_chr,
+  vector_fct = vector_fct,
+  date = Sys.Date(),
+  date2 = "07/26/2022"
+)
+
+# Accessing a vector from a dataframe 
+
+tib_data |> 
+  pull(vector_fct)
+
+```
+
+### Working with dates
+
+```{r}
+
+
+as.numeric(Sys.Date()) # number of days since 1970-01-01
+
+# Q: Which date is number 1
+
+as_date(1)
+
+# Step 1: Highlight error
+
+#tib_data |> 
+#  mutate(month = month(date),
+#         month2 = month(date2)) 
+
+# Step 2
+
+tib_data |> 
+  mutate(date2 = mdy(date2)) |> 
+  mutate(month = month(date),
+         month2 = month(date2),
+         week = week(date),
+         wday = wday(date, label = TRUE, abbr = FALSE),
+         quarter = quarter(date))
+
+```
