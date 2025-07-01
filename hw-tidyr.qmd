@@ -15,7 +15,11 @@ execute:
 
 1.  What's the `tidyverse` Package? Describe in maximum two sentences below.
 
+    The `tidyverse` package is a collection of packages in `R` that improve capacity to handle and tidy data effectively. It includes multiple packages, making it easier than calling many libraries.
+
 2.  What's the [`here` Package](https://here.r-lib.org/articles/here.html)? Why is useful when working with quarto or R Markdown files?
+
+    The `here` package is designed to help the navigation and referencing of file paths. It is helpful when working with quart or R Markdown files because they utilize file paths relative to the top of the file directory and makes them safe to pass through other functions.
 
 ```{r}
 library(tidyverse)
@@ -28,8 +32,9 @@ library(here)
 
 1.  Use the `read_csv()` (**Note**: Watch out for the `_` don't use the `.` as in `read.csv()`) function to import the 'msw-generation-and-composition-by-income.csv' data from the "data" directory and assign it to an object with the name `waste_data`. **Tip:** Combine the `read_csv()` with the `here()` function as we have done in the live coding exercise of week 4.
 
-```{r}
-
+```{r import}
+# import the data
+waste_data <- read_csv(here::here("data/msw-generation-and-composition-by-income.csv"))
 
 ```
 
@@ -50,8 +55,15 @@ waste_data |>
 
 3.  Render and fix any errors
 
-```{r}
+```{r vector_coresion}
+# create frequency table for income categories to confirm spelling 
+waste_data |> 
+  count(income_cat)
 
+levels_income_cat<- c("low income", "lower-middle income", "upper-middle income", "high income")
+
+waste_data_fct <- waste_data |> 
+  mutate(income_cat = factor(income_cat, levels = levels_income_cat))
 ```
 
 # Task 3: From wide to long
@@ -70,7 +82,14 @@ waste_data |>
 
 4.  Render and fix any errors
 
-```{r}
+```{r wide_to_long}
+# convert the data from a wide format to long format
+waste_data_long <- waste_data_fct |> 
+  pivot_longer(cols = food_organic_waste:yard_garden_green_waste,
+               names_to = "waste_category",
+               values_to = "percent") |> 
+  filter(!is.na(percent))
+
 
 ```
 
@@ -88,20 +107,32 @@ waste_data_long <- read_rds(here("data/msw-generation-and-composition-by-income-
 
 2.  Assign the created dataframe to an object with the name `waste_data_long_mean`.
 
-```{r}
+```{r summarize}
+# summarize the data, grouped by income and waste category
+waste_data_long_mean <- waste_data_long |> 
+  group_by(income_cat, waste_category) |> 
+  summarize(mean_percent = mean(percent))
 
 ```
 
 1.  Starting with the `waste_data_long_mean` object, execute the code and observe the output in the Console. Would you publish this table in this format in a report?
 
+    I would not publish a table in this format in a report.
+
 2.  Starting with the `waste_data_long_mean` object, use the pipe operator to add another line of code which uses the `pivot_wider()` function to bring the data from a long format into a wide format using names for variables from `waste_category` and corresponding values from `mean_percent`
 
 3.  Execute the code and observe the output in the Console. Would you publish this table in a report in this format?
 
+    I would put this table in a report, but to make it look even better, I will use `knitr::kable()` to clean up the table.
+
 4.  Render and fix any errors
 
-```{r}
-
+```{r long_to_wide}
+# convert the long data means to a wide format
+waste_data_long_mean |> 
+  pivot_wider(names_from = waste_category,
+              values_from = mean_percent) |> 
+  knitr::kable(digits = 2)
 ```
 
 # Task 5: Data visualisation
@@ -122,7 +153,21 @@ waste_data_long_mean <- read_rds(here("data/msw-generation-and-composition-by-in
 
 **Note:** The size of the plot will be different. That is alright and does not need to match.
 
-```{r}
+```{r plotting}
+# plot the data to match the figure attached
+ggplot(data = waste_data_long_mean, 
+       mapping = aes(x = mean_percent,
+                     y = waste_category,
+                     fill = income_cat)) +
+  geom_col(position = position_dodge()) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Paired") +
+  labs(title = "Waste Composition",
+         subtitle = "Mean percentages of nine waste categories displayed by income categories",
+         x = "mean (percent)",
+         y = "waste category",
+         caption = "Data from: https://datacatalog.woldbank.org/search/dataset/0039597",
+       fill = "Income Category")
 
 ```
 

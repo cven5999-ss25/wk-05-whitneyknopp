@@ -34,14 +34,23 @@ The dataset contains the results of a waste characterisation study of public bin
 Additional metadata on location and type of bin is available.
 
 ```{r}
+# import the data
+# the data is not separated by a comma, but a semicolim, use read_delim() or read_csv2
+read_csv2(here::here("data/rbtl_fs22_waste_composition_bellevue.csv"))
 
-
+waste_data <- read_delim(here::here("data/rbtl_fs22_waste_composition_bellevue.csv"), delim = ";")
 
 ```
 
 ```{r}
 
-
+waste_data |> 
+  select(number, starts_with("weight")) |> 
+  rename_with(~str_remove(.x, "weight_")) |> # ~ does over each column with the .x
+  select(-total) |> 
+  pivot_longer(cols = !number, # excludes the number column
+               names_to = "weight_category", # changes column name for previous names
+               values_to = "weight") # changes name of value column 
 ```
 
 ## Example: Gapminder
@@ -49,20 +58,28 @@ Additional metadata on location and type of bin is available.
 The following exercise is taken from [@zimmerman2019].
 
 ```{r}
-
-gapminder_wide <- read_csv("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/main/episodes/data/gapminder_wide.csv")
+# read the csv directly from github when they're stored in a repository
+gapminder_wide <- read_csv("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/main/episodes/data/gapminder_wide.csv") 
 
 ```
 
 ```{r}
-
+gapminder_wide
 
 ```
 
 ### From wide to long
 
 ```{r}
+gapminder_long <- gapminder_wide |>
+  pivot_longer(cols = gdpPercap_1952:pop_2007,
+               names_to = "obs_type_year",
+               values_to = "obs_value") |> # based on this, we need to separate obs_type_year into 2 separate columns
+  separate(col = obs_type_year, into = c("obs_type", "year"), sep = "_")
 
+
+
+  
 
 ```
 
@@ -72,6 +89,15 @@ gapminder_wide <- read_csv("https://raw.githubusercontent.com/swcarpentry/r-novi
 2.  Assign the created dataframe to an object with the name `gapminder_long_summary`
 
 ```{r}
+gapminder_long_summary <- gapminder_long |> 
+  group_by(continent, obs_type) |> 
+  summarize(average = mean(obs_value))
+
+# go from long to wide data
+gapminder_long_summary |> 
+  pivot_wider(names_from = obs_type,
+              values_from = average) |> 
+  knitr::kable(digits = 1)
 
 ```
 

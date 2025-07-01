@@ -12,7 +12,9 @@ execute:
 ---
 
 ```{r}
-
+library(tidyverse)
+library(gapminder)
+library(lubridate) # package to work with dates
 ```
 
 # Part 1: (Atomic) Vectors
@@ -22,21 +24,39 @@ Atomic vectors, of which there are six types: logical, integer, double, characte
 Integer and double vectors are collectively known as numeric vectors.
 
 -   lgl: logical
--   int: integer
--   dbl: double
+-   numeric classes are integers and double; the VECTOR TYPES are int and double
+    -   int: integer
+    -   dbl: double
 -   chr: character
+-   factor (fct) class is a ranked character value
 
 ```{r}
-
-
+glimpse(gapminder)
+gapminder
 
 ```
 
 ## Types of atomic vectors
 
 ```{r}
+# constructing a logical vector -- can ONLY include TRUE, FALSE or NA
+vector_lgl <- c(TRUE, TRUE, FALSE)
 
+# check what type of class
+typeof(vector_lgl)
 
+# adding "L" will make numerica values (double) as integers
+vector_int <- c(1L, 3L, 6L)
+typeof(vector_int)
+
+# constructing a double vector, adds the same number of decimals 
+vector_dbl <- c(192, 118.5, 162.5)
+typeof(vector_dbl)
+class(vector_dbl)
+
+# character vectors have strings
+vector_chr <- c("large", "small", "medium")
+typeof(vector_chr)
 ```
 
 ## Explicit vector coercion & augmented vectors
@@ -44,13 +64,48 @@ Integer and double vectors are collectively known as numeric vectors.
 Vectors can also contain arbitrary additional metadata in the form of attributes. These attributes are used to create augmented vectors which build on additional behaviour. For example, factors are built on top of integer vectors.
 
 ```{r}
+# express logical vectors as numeric values (where TRUE = 1 and FALSE = 0)
+as.numeric(vector_lgl)
 
+# force characters to have a specific type of order/levels with the factor() function
+# this is valuable for data vis/plotting/organizing etc.
+vector_fct <- factor(vector_chr, levels = c("small", "medium", "large"))
+typeof(vector_fct)
+attributes(vector_fct)
+# you can convert factors to integers with the levels defined in the factor() function
+as.integer(vector_fct)
 
+# turn vectors into a data frame with tibble(); column_name = value
+tib_data <- tibble(
+  vector_lgl = vector_lgl,
+  vector_int = vector_int,
+  vector_dbl = vector_dbl,
+  vector_chr = vector_chr,
+  vector_fct = vector_fct,
+  date = Sys.Date(), # this is recognized as a date in the table
+  date2 = "06/30/2025" # this is recognized as a character
+)
 ```
 
 ### Working with dates
 
 ```{r}
 
+as.numeric(Sys.Date()) # number of days since jan 01, 1970 
+# ISO standard of YYY-MM-DD
+# this is very valuable because it allows you to do mathematical operations with date
 
+as_date(1) # 1970-01-02
+as_date(-1) # 1969-12-31
+
+tib_data |> 
+  mutate(month = month(date, label = TRUE)) |>  # label = TRUE gives us the string
+  mutate(wday = wday(date2)) # will get an error, "character is not unambiguous
+
+tib_data |> 
+  mutate(date2 = mdy(date2)) |> # use the function mdy() to convert into the proper date format
+  mutate(month = month(date2),
+         week = week(date2),
+         wday = wday(date2, label = TRUE, abbr = FALSE),
+         quarter = quarter(date2))
 ```
