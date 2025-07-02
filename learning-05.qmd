@@ -11,15 +11,17 @@ Learning reflections are part of your weekly homework and have a weight of 20% o
 
 # Lecture
 
-<!--# Add your reflections on the lecture of this week here -->
-
 # Homework Assignment
 
-<!--# Add your reflections on the homework programming assignment here -->
+The homework this week was very helpful for tidying and wrangling data. I think it is very important to be able to change the format of a data set to best suit your needs. This can range from plotting (which can be done in both long and wide formats), to analysis, organization and publication (which is best in wide format).
+
+I think the `here::here()` function is powerful and helpful. I have experienced the challenge of confusing working directories and file paths. I am curious if `here::here()` is applicable/helpful when working on a local server from the `R studio` application, if so, is there a difference?
 
 # Readings
 
-<!--# Add your reflections on the required readings here -->
+Identifying what constitutes a "tidy" data set is more challenging than I originally thought. Many spreadsheets can be organized and follow the some of the conventions from proper spreadsheet ( we read for homework several weeks ago) and not be considered "tidy", where each column is a variable, each row is an observation and each cell is a single value. Knowing how to treat `NA` and/or missing values is also very important when tidying data, as we have also seen previously.
+
+I think factors are a very powerful type of variable to be used in analysis and visualization. Establishing a variable as a factor and manipulating the order/levels adds a level of complexity to visualizations that provides valuable information.
 
 # Submit learning reflections
 
